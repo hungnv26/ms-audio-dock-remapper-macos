@@ -1,0 +1,113 @@
+name: macOS Release
+
+# Publishes a GitHub Release with the app bundle whenever a version tag is
+# pushed (git tag v1.2.3 && git push origin v1.2.3), or on manual dispatch
+# for the tag given as input.
+
+"on":
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macos-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-latest
+
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+
+      - name: Cache Rust build files
+        uses: Swatinem/rust-cache@v2
+
+      - name: Verify the tag matches Cargo.toml
+        run: |
+          CRATE="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          if [ "$CRATE" != "${{ steps.tag.outputs.version }}" ]; then
+            echo "Cargo.toml version $CRATE does not match tag ${{ steps.tag.outputs.tag }}" >&2
+            exit 1
+          fi
+
+      - name: Verify formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run tests
+        run: cargo test --locked
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Build app bundle
+        run: ./build-macos.sh
+
+      - name: Smoke-test the bundle
+        run: |
+          APP="target/release/MS Audio Dock Remapper.app"
+          codesign --verify --verbose=2 "$APP"
+          plutil -lint "$APP/Contents/Info.plist"
+          "$APP/Contents/MacOS/ms-audio-dock-remapper" --minimized &
+          PID=$!
+          sleep 5
+          kill -0 "$PID"
+          kill "$PID"
+
+      - name: Package
+        id: package
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          mkdir -p dist
+          ZIP="dist/MS-Audio-Dock-Remapper-$TAG-macos.zip"
+          ditto -c -k --keepParent "target/release/MS Audio Dock Remapper.app" "$ZIP"
+          (cd dist && shasum -a 256 "$(basename "$ZIP")" > "SHA256SUMS-$TAG.txt")
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "sums=dist/SHA256SUMS-$TAG.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          cat > notes.md <<'NOTES'
+          ## Install
+
+          1. Download the `.zip` below and unzip it.
+          2. Move **MS Audio Dock Remapper.app** to `/Applications`.
+          3. The app is signed ad hoc, not notarized: on first launch **right-click the app and choose Open**, then confirm.
+
+          The app lives in the menu bar (no Dock icon). Binding an action to Play/Pause or a Volume key asks once for Accessibility access; see the README for why.
+
+          Requires macOS 11 or later and a Microsoft Audio Dock.
+          NOTES
+          gh release create "$TAG" \
+            "${{ steps.package.outputs.zip }}" \
+            "${{ steps.package.outputs.sums }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "MS Audio Dock Remapper for macOS $TAG" \
+            --notes-file notes.md \
+            --generate-notes

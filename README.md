@@ -38,9 +38,11 @@ moment you make them.
 
 ## Install
 
-Prebuilt bundles are attached to GitHub Actions runs (artifact
-`MS-Audio-Dock-Remapper-macos`) and, once tagged, to the Releases page. They
-are signed ad hoc, so on first launch right-click the app and choose *Open*.
+Download the latest `MS-Audio-Dock-Remapper-<version>-macos.zip` from the
+[Releases page](../../releases/latest), unzip it and move the app to
+`/Applications`. The bundle is signed ad hoc (not notarized), so on first
+launch right-click the app and choose *Open*. Every push to `main` also
+leaves a bundle as a GitHub Actions artifact for testing.
 
 To build from source:
 
@@ -121,7 +123,9 @@ developed and tested on macOS only.
 See [CONTRIBUTING.md](CONTRIBUTING.md). The macOS CI workflow runs `cargo fmt`,
 `cargo test`, `cargo clippy -D warnings`, builds the bundle, checks its
 signature and `Info.plist`, starts it headless for five seconds and uploads the
-zipped bundle.
+zipped bundle. Pushing a tag `vX.Y.Z` that matches the version in `Cargo.toml`
+runs the release workflow, which repeats those checks and publishes the zip
+plus a SHA-256 checksum file as a GitHub Release.
 
 ## Origin and license
 
