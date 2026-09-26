@@ -104,6 +104,25 @@ thread_local! {
     static STATUS_ITEM: RefCell<Option<TrayIcon>> = const { RefCell::new(None) };
 }
 
+/// Name of the log file under `~/Library/Logs`, readable in Console.app.
+const LOG_FILE: &str = "MS Audio Dock Remapper for macOS.log";
+
+/// Writes a timestamped line to stderr and to the log file, so a copy started
+/// by launchd (no stderr) still leaves a trace of connects, drops and modes.
+pub(crate) fn log(message: &str) {
+    let line = format!(
+        "{} [ms-audio-dock-remapper] {message}\n",
+        chrono::Local::now().format("%Y-%m-%d %H:%M:%S")
+    );
+    eprint!("{line}");
+    if let Some(path) = dirs::home_dir().map(|h| h.join("Library").join("Logs").join(LOG_FILE)) {
+        if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) {
+            use std::io::Write;
+            let _ = file.write_all(line.as_bytes());
+        }
+    }
+}
+
 fn emit(on_event: &SharedOnEvent, event: MonitorEvent) {
     let callback = on_event.lock().unwrap();
     (*callback)(event);
@@ -260,7 +279,7 @@ fn monitor_loop(
                     .collect();
                 let count = matching.len() as u32;
                 if last_status != Some(count) {
-                    eprintln!("[ms-audio-dock-remapper] matching Dock collections: {count}");
+                    log(&format!("matching Dock collections: {count}"));
                     emit(&on_event, MonitorEvent::Status(count));
                     last_status = Some(count);
                 }
@@ -279,7 +298,7 @@ fn monitor_loop(
             sleep_unless_quit(RESCAN_INTERVAL);
             continue;
         };
-        eprintln!("[ms-audio-dock-remapper] Dock opened in {mode:?} mode");
+        log(&format!("Dock opened in {mode:?} mode"));
         emit(
             &on_event,
             MonitorEvent::Exclusive(mode == OpenMode::Exclusive),
@@ -378,7 +397,7 @@ fn install_status_item(on_event: SharedOnEvent) {
     let open_item = MenuItem::new(i18n::t("tray_open"), true, None);
     let quit_item = MenuItem::new(i18n::t("menu_exit"), true, None);
     if let Err(e) = menu.append_items(&[&open_item, &PredefinedMenuItem::separator(), &quit_item]) {
-        eprintln!("[ms-audio-dock-remapper] status menu unavailable: {e}");
+        log(&format!("status menu unavailable: {e}"));
         return;
     }
 
@@ -403,10 +422,10 @@ fn install_status_item(on_event: SharedOnEvent) {
     }
     match builder.build() {
         Ok(item) => {
-            eprintln!("[ms-audio-dock-remapper] menu bar item installed");
+            log("menu bar item installed");
             STATUS_ITEM.with(|slot| *slot.borrow_mut() = Some(item));
         }
-        Err(e) => eprintln!("[ms-audio-dock-remapper] status item unavailable: {e}"),
+        Err(e) => log(&format!("status item unavailable: {e}")),
     }
 }
 
@@ -429,7 +448,7 @@ fn status_icon() -> Option<Icon> {
 /// Modal alert through `osascript` (no AppKit dependency in this layer), plus
 /// stderr so a headless launch still leaves a trace.
 pub fn alert(message: &str) {
-    eprintln!("[ms-audio-dock-remapper] {message}");
+    log(message);
     let script = format!(
         "display alert \"MS Audio Dock Remapper for macOS\" message \"{}\" as warning",
         message.replace('\\', "\\\\").replace('"', "\\\"")
@@ -548,7 +567,7 @@ pub fn set_autostart(enable: bool, start_minimized: bool) {
         let _ = fs::create_dir_all(parent);
     }
     if let Err(e) = fs::write(&path, plist) {
-        eprintln!("[ms-audio-dock-remapper] failed to write LaunchAgent: {e}");
+        log(&format!("failed to write LaunchAgent: {e}"));
     }
 }
 
