@@ -247,6 +247,8 @@ slint::slint! {
         in property <bool> exclusive-active: false;
         // A media key has an action but the takeover is not active yet.
         in property <bool> needs-accessibility: false;
+        in property <bool> reconnect-available: false;
+        in property <string> reconnect-text: "Performs a software replug of the Dock's audio and buttons. If the Dock has vanished from the USB bus, only unplugging its power adapter brings it back.";
 
         callback button-selected(int);
         callback action-kind-changed(int);
@@ -257,6 +259,7 @@ slint::slint! {
         callback test-action();
         callback setting-changed();
         callback open-accessibility-settings();
+        callback reconnect-dock();
         callback open-repo();
         callback quit-app();
 
@@ -566,8 +569,14 @@ slint::slint! {
                             }
                             Row {
                                 label: "Matching HID collections";
-                                divider: false;
+                                divider: !root.reconnect-available;
                                 Text { text: root.collections-text; font-size: 13px; color: Theme.text2; vertical-alignment: center; }
+                            }
+                            if root.reconnect-available: Row {
+                                label: "Reconnect the Dock";
+                                detail: root.reconnect-text;
+                                divider: false;
+                                Button { text: "Reconnect"; clicked => { root.reconnect-dock(); } }
                             }
                         }
                         Group {
@@ -940,6 +949,16 @@ pub fn run(config: Arc<Mutex<Config>>, start_minimized: bool) {
             st.save();
         });
     }
+    ui.set_reconnect_available(platform::supports_reconnect());
+    {
+        let st = state.clone();
+        let uiw = ui.as_weak();
+        ui.on_reconnect_dock(move || {
+            if let Some(ui) = uiw.upgrade() {
+                reconnect(&st.config, &ui);
+            }
+        });
+    }
     ui.on_open_accessibility_settings(|| {
         let _ = open::that_detached(ACCESSIBILITY_SETTINGS_URL);
     });
@@ -1044,6 +1063,20 @@ fn present(ui: &AppWindow) {
             .set_size(slint::LogicalSize::new(INITIAL_SIZE.0, INITIAL_SIZE.1));
     }
     platform::bring_to_front();
+}
+
+/// Software replug of the Dock, reporting the outcome in the About row.
+fn reconnect(config: &Arc<Mutex<Config>>, ui: &AppWindow) {
+    let cfg = config.lock().unwrap().clone();
+    match platform::reconnect_device(&cfg) {
+        Ok(()) => ui.set_reconnect_text(
+            format!("Reconnected at {}. The status dot goes gray and green again as the Dock re-enumerates.", now_hms()).into(),
+        ),
+        Err(e) => {
+            ui.set_reconnect_text(e.clone().into());
+            platform::alert(&format!("{} {e}", t("reconnect_fail")));
+        }
+    }
 }
 
 fn media_hint(media_bound: bool, exclusive: bool, granted: bool) -> &'static str {
@@ -1160,6 +1193,13 @@ fn apply_event(ui: &AppWindow, ev: MonitorEvent) {
             ui.set_connected(n > 0);
             ui.set_status_text(if n > 0 { "Connected" } else { "Not connected" }.into());
             ui.set_collections_text(n.to_string().into());
+        }
+        MonitorEvent::Reconnect => {
+            PUMP_STATE.with(|slot| {
+                if let Some(state) = slot.borrow().as_ref() {
+                    reconnect(&state.config, ui);
+                }
+            });
         }
         MonitorEvent::Exclusive(exclusive) => {
             ui.set_exclusive_active(exclusive);

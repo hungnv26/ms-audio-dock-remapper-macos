@@ -75,6 +75,11 @@ extern "C" {
     fn hid_darwin_set_open_exclusive(open_exclusive: c_int);
 }
 
+extern "C" {
+    // src/platform/usb_reenumerate.c, compiled by build.rs.
+    fn msadr_usb_reenumerate(vid: u16, pid: u16) -> i32;
+}
+
 #[link(name = "ApplicationServices", kind = "framework")]
 extern "C" {
     fn AXIsProcessTrusted() -> u8;
@@ -135,6 +140,38 @@ pub fn supported_buttons() -> &'static [Button] {
 
 pub fn supports_media_key_takeover() -> bool {
     true
+}
+
+pub fn supports_reconnect() -> bool {
+    true
+}
+
+/// Asks macOS to re-enumerate the Dock's audio/button device: the same thing
+/// unplugging and replugging it does, minus the cable. The Dock's hubs are
+/// kernel-owned and cannot be reset this way, so when the whole USB 2.0 side
+/// has dropped off the bus (the device is absent) only a power cycle helps.
+pub fn reconnect_device(config: &Config) -> Result<(), String> {
+    let hex = |s: &str| u16::from_str_radix(s.trim(), 16).ok();
+    let (Some(vid), Some(pid)) = (
+        hex(&config.device.vendor_id),
+        hex(&config.device.product_id),
+    ) else {
+        return Err("The device filter in the settings file is not valid hex".into());
+    };
+    log("reconnect requested: re-enumerating the Dock");
+    match unsafe { msadr_usb_reenumerate(vid, pid) } {
+        0 => Ok(()),
+        1 => Err(
+            "The Dock is not on the USB bus, so software cannot reach it. \
+                  Unplug the Dock's power adapter for five seconds and plug it back in; \
+                  the app reconnects on its own."
+                .into(),
+        ),
+        code => Err(format!(
+            "macOS refused to re-enumerate the Dock (IOKit error 0x{:x}).",
+            code as u32
+        )),
+    }
 }
 
 /// Activates the app (LSUIElement apps are not activated by their status
@@ -395,17 +432,26 @@ fn sleep_unless_quit(total: Duration) {
 fn install_status_item(on_event: SharedOnEvent) {
     let menu = Menu::new();
     let open_item = MenuItem::new(i18n::t("tray_open"), true, None);
+    let reconnect_item = MenuItem::new(i18n::t("tray_reconnect"), true, None);
     let quit_item = MenuItem::new(i18n::t("menu_exit"), true, None);
-    if let Err(e) = menu.append_items(&[&open_item, &PredefinedMenuItem::separator(), &quit_item]) {
+    if let Err(e) = menu.append_items(&[
+        &open_item,
+        &reconnect_item,
+        &PredefinedMenuItem::separator(),
+        &quit_item,
+    ]) {
         log(&format!("status menu unavailable: {e}"));
         return;
     }
 
     let open_id = open_item.id().clone();
+    let reconnect_id = reconnect_item.id().clone();
     let quit_id = quit_item.id().clone();
     MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
         let mapped = if *event.id() == open_id {
             MonitorEvent::TrayShow
+        } else if *event.id() == reconnect_id {
+            MonitorEvent::Reconnect
         } else if *event.id() == quit_id {
             MonitorEvent::Quit
         } else {

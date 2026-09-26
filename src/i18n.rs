@@ -6,6 +6,8 @@
 pub fn t(key: &str) -> &str {
     const TABLE: &[(&str, &str)] = &[
         ("tray_open", "Open Settings…"),
+        ("tray_reconnect", "Reconnect Dock"),
+        ("reconnect_fail", "Could not reconnect the Dock: "),
         ("menu_exit", "Quit MS Audio Dock Remapper for macOS"),
         (
             "single_instance",

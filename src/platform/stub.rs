@@ -37,6 +37,14 @@ pub fn supported_buttons() -> &'static [Button] {
 
 pub fn bring_to_front() {}
 
+pub fn supports_reconnect() -> bool {
+    false
+}
+
+pub fn reconnect_device(_config: &Config) -> Result<(), String> {
+    Err("Reconnecting the Dock from software is only available on macOS".into())
+}
+
 pub fn supports_media_key_takeover() -> bool {
     false
 }

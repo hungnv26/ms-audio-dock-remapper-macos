@@ -16,6 +16,17 @@ fn main() {
     println!("cargo:rustc-env=SLINT_STYLE={style}");
     println!("cargo:rerun-if-changed=build.rs");
 
+    #[cfg(target_os = "macos")]
+    {
+        // Software replug of the Dock (IOUSBLib); see the C file for details.
+        println!("cargo:rerun-if-changed=src/platform/usb_reenumerate.c");
+        cc::Build::new()
+            .file("src/platform/usb_reenumerate.c")
+            .compile("usb_reenumerate");
+        println!("cargo:rustc-link-lib=framework=IOKit");
+        println!("cargo:rustc-link-lib=framework=CoreFoundation");
+    }
+
     #[cfg(windows)]
     {
         ensure_rc_on_path();

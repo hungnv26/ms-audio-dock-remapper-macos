@@ -89,6 +89,9 @@ pub enum MonitorEvent {
     /// The Dock is now open exclusively (true) or shared (false); macOS only.
     #[cfg_attr(windows, allow(dead_code))]
     Exclusive(bool),
+    /// The status-item menu asked for a software replug of the Dock.
+    #[cfg_attr(windows, allow(dead_code))]
+    Reconnect,
 }
 
 /// Starts the OS-specific resident monitor (input listening + tray).
@@ -152,6 +155,18 @@ pub fn supports_media_key_takeover() -> bool {
 /// no such gate exists.
 pub fn accessibility_trusted(prompt: bool) -> bool {
     backend::accessibility_trusted(prompt)
+}
+
+/// Whether [`reconnect_device`] can do anything on this platform.
+pub fn supports_reconnect() -> bool {
+    backend::supports_reconnect()
+}
+
+/// Software replug of the Dock's audio/button device (re-enumeration). Errors
+/// carry a user-facing sentence, including the case where the Dock has left
+/// the USB bus and only a power cycle can bring it back.
+pub fn reconnect_device(config: &Config) -> Result<(), String> {
+    backend::reconnect_device(config)
 }
 
 /// Makes this app the active one so a window shown from the tray / menu bar

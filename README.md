@@ -81,6 +81,18 @@ time you give a media key an action, switches over by itself once it is granted
 (no restart), and until then keeps the shared mode so nothing stops working.
 One trade-off: holding a volume key no longer auto-repeats in exclusive mode.
 
+## If the Dock stops responding
+
+The Dock's audio and buttons sit behind its internal USB 2.0 hub, which can
+drop off the bus (a marginal cable or port, or the hub resetting) while the
+display, on the USB 3.0 side, keeps working. **Reconnect Dock** in the menu
+bar menu (also in About) performs a software replug of the audio/button
+device, which is the same as unplugging and replugging it. If the Dock has
+vanished from the USB bus entirely, software cannot reach it: unplug the
+Dock's power adapter for five seconds, or sleep and wake the Mac. The app
+reconnects on its own either way, and logs every drop and return with a
+timestamp in `~/Library/Logs/MS Audio Dock Remapper for macOS.log`.
+
 ## How it works
 
 The Dock exposes several HID collections on one USB interface. macOS delivers
