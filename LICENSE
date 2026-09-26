@@ -1,6 +1,9 @@
 MIT License
 
-Copyright (c) 2026 Masterain
+Copyright (c) 2026 Masterain (original Windows application,
+    https://github.com/Masterain98/ms-audio-dock-remapper)
+Copyright (c) 2026 Hung Ngo (macOS port, per-button remapping and redesigned
+    settings window, https://github.com/hungnv26/ms-audio-dock-remapper-macos)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

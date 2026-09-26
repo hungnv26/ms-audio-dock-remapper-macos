@@ -57,7 +57,10 @@ const RESCAN_INTERVAL: Duration = Duration::from_secs(1);
 /// Read timeout: bounds how long a quit request waits for the read loop.
 const READ_TIMEOUT_MS: i32 = 250;
 /// launchd label of the login item written by [`set_autostart`].
-const LAUNCH_AGENT_LABEL: &str = "com.masterain.ms-audio-dock-remapper";
+const LAUNCH_AGENT_LABEL: &str = "net.hungngo.ms-audio-dock-remapper";
+/// Label used by pre-1.0 builds; removed whenever the login item is rewritten
+/// so two entries never start the app twice at login.
+const LEGACY_LAUNCH_AGENT_LABEL: &str = "com.masterain.ms-audio-dock-remapper";
 /// How many read timeouts pass between checks of the desired open mode.
 const MODE_CHECK_TICKS: u32 = 4;
 
@@ -462,16 +465,21 @@ pub fn release_single_instance() {
 
 // --- login autostart (LaunchAgent) -------------------------------------------
 
-fn launch_agent_path() -> Option<PathBuf> {
+fn launch_agent_path_for(label: &str) -> Option<PathBuf> {
     dirs::home_dir().map(|home| {
         home.join("Library")
             .join("LaunchAgents")
-            .join(format!("{LAUNCH_AGENT_LABEL}.plist"))
+            .join(format!("{label}.plist"))
     })
+}
+
+fn launch_agent_path() -> Option<PathBuf> {
+    launch_agent_path_for(LAUNCH_AGENT_LABEL)
 }
 
 pub fn autostart_enabled() -> bool {
     launch_agent_path().is_some_and(|p| p.is_file())
+        || launch_agent_path_for(LEGACY_LAUNCH_AGENT_LABEL).is_some_and(|p| p.is_file())
 }
 
 /// Writes (or removes) a per-user LaunchAgent that runs this executable at
@@ -482,6 +490,11 @@ pub fn set_autostart(enable: bool, start_minimized: bool) {
     let Some(path) = launch_agent_path() else {
         return;
     };
+    if let Some(legacy) = launch_agent_path_for(LEGACY_LAUNCH_AGENT_LABEL) {
+        if legacy.exists() {
+            let _ = fs::remove_file(legacy);
+        }
+    }
     if !enable {
         if path.exists() {
             let _ = fs::remove_file(&path);

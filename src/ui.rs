@@ -549,6 +549,9 @@ slint::slint! {
                                 Caption {
                                     text: "Remaps the buttons of the Microsoft Audio Dock. Monitoring is read-only: nothing is written to the device.";
                                 }
+                                Caption {
+                                    text: "macOS port by Hung Ngo, based on Masterain's Windows remapper (MIT).";
+                                }
                             }
                         }
                         Group {
@@ -570,7 +573,7 @@ slint::slint! {
                         Group {
                             Row {
                                 label: "Source code";
-                                detail: "github.com/Masterain98/ms-audio-dock-remapper";
+                                detail: "github.com/hungnv26/ms-audio-dock-remapper-macos";
                                 Button { text: "Open"; clicked => { root.open-repo(); } }
                             }
                             Row {
@@ -587,7 +590,7 @@ slint::slint! {
     }
 }
 
-const REPO_URL: &str = "https://github.com/Masterain98/ms-audio-dock-remapper";
+const REPO_URL: &str = "https://github.com/hungnv26/ms-audio-dock-remapper-macos";
 
 const ACCESSIBILITY_SETTINGS_URL: &str =
     "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility";

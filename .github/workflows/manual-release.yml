@@ -82,7 +82,6 @@ jobs:
           New-Item -ItemType Directory -Path $stageDirectory -Force | Out-Null
           Copy-Item -LiteralPath 'target\release\ms-audio-dock-remapper.exe' -Destination (Join-Path $stageDirectory 'MS Audio Dock Remapper.exe')
           Copy-Item -LiteralPath 'README.md' -Destination $stageDirectory
-          Copy-Item -LiteralPath 'README_CN.md' -Destination $stageDirectory
           Copy-Item -LiteralPath 'LICENSE' -Destination $stageDirectory
           Compress-Archive -Path (Join-Path $stageDirectory '*') -DestinationPath $portablePath -CompressionLevel Optimal
 

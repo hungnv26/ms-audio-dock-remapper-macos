@@ -1,9 +1,11 @@
 [package]
 name = "ms-audio-dock-remapper"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-description = "Remap the Microsoft Audio Dock Teams key to launch other processes (Rust + Slint)"
+description = "Remap the buttons of the Microsoft Audio Dock on macOS (Rust + Slint)"
 license = "MIT"
+authors = ["Hung Ngo", "Masterain"]
+repository = "https://github.com/hungnv26/ms-audio-dock-remapper-macos"
 
 [dependencies]
 slint = "1"

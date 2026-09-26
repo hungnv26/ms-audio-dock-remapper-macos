@@ -1,165 +1,137 @@
-# MS Audio Dock Teams Key Remapper
+# MS Audio Dock Remapper for macOS
 
-[简体中文](README_CN.md)
+Give every button on the Microsoft Audio Dock a job of your choosing on
+macOS: the Teams key, Play/Pause, Volume Up, Volume Down and Microphone Mute
+can each open an application, open a URL, run a command or play a sound.
 
-Turn the dedicated Microsoft Teams button on your Microsoft Audio Dock into a
-shortcut for the application, command, or link you actually use.
+![Buttons section of the settings window, dark mode](docs/screenshot-buttons-dark.png)
 
-## Why this app exists
+Microsoft ships no macOS software for the Dock, so its Teams key does nothing
+on a Mac and the other keys are locked to their default meaning. This app
+listens to the Dock's HID reports read-only (nothing is written to the device,
+no driver, no firmware change), lives in the menu bar, and applies changes the
+moment you make them.
 
-The Microsoft Audio Dock includes a dedicated Teams button, but Windows does
-not provide a general-purpose way to assign that button to another
-application. If Teams is not your primary meeting tool, the button is largely
-unused.
+## Features
 
-MS Audio Dock Teams Key Remapper makes that physical button useful without
-changing the Dock firmware, installing a custom driver, or requiring
-administrator privileges.
-
-## What it can do
-
-- Bind an action to the Teams key, and on macOS to every button on the Dock
-  (Teams, play/pause, volume down, volume up, microphone mute).
-- Launch any installed application: desktop or Microsoft Store apps registered
-  with Windows, `.app` bundles from the Applications folders on macOS.
-- Run a custom executable, open a URL, or invoke another shell-supported
-  target.
-- Search the installed application list by name and see each application's
-  native icon.
-- Try an action from the settings window; every change applies immediately.
-- Play an optional confirmation sound after a successful trigger.
-- Start automatically at sign-in / login, optionally hidden.
-- Continue listening from the system tray (Windows) or the menu bar (macOS)
-  after the settings window is closed.
-
-The settings window follows the layout of macOS System Settings: a sidebar
-with Buttons, General and About sections, and grouped rows on the right.
-
-## How it works
-
-The app listens to the Audio Dock through the Windows Raw Input API and watches
-for the HID report produced by the Teams button. This is read-only monitoring:
-the app does not write to the Dock or replace its driver.
-
-When a button press is detected, the selected action is sent to a dedicated
-worker thread. Applications selected from the list are launched through the
-Windows Shell, using the same registered application catalog exposed by
-`shell:AppsFolder`. This allows the remapper to open both traditional desktop
-programs and packaged Microsoft Store applications while keeping the device
-listener responsive.
-
-On macOS the same read-only monitoring runs through IOKit (via `hidapi`, in
-shared mode so macOS keeps handling the Dock's own volume and media keys), the
-app lives in the menu bar instead of the tray, and the picker lists the `.app`
-bundles from the Applications folders. The Dock sends the identical Teams
-report on both systems.
+- **Every button is remappable.** Teams, Play/Pause, Volume Up/Down and Mic
+  Mute each get their own action: open an application, open a URL or run a
+  command with arguments, play a sound, or nothing.
+- **Remapped media keys do only your action.** Once a media key has an
+  action, the app takes the Dock over from the system; keys you leave alone are
+  handed back to macOS and keep working (see *Permissions*).
+- **Settings window in the style of macOS System Settings**: sidebar,
+  grouped rows, native controls, light and dark mode. No Save button.
+- **Application picker** that searches the Applications folders and shows each
+  app's real icon; launching brings an already-running app to the front.
+- **Menu bar app**: no Dock icon, reopen or quit from the status item;
+  optional launch at login, optionally hidden.
+- **Hot-plug aware**: unplug and replug the Dock and the app reconnects by
+  itself.
+- **Read-only, permission-light**: no Input Monitoring, no kernel extension.
+  Accessibility access is requested only when you bind a media key.
 
 ## Requirements
 
-- Windows 10 or Windows 11, x64, **or** macOS 11 or later (Apple silicon and
-  Intel; build from source, see below)
-- Microsoft Audio Dock
+- macOS 11 or later, Apple silicon or Intel
+- A Microsoft Audio Dock (USB VID `045E`, PID `084D`)
 
-The built-in device profile targets the standard Microsoft Audio Dock HID
-identity and Teams-button report.
+## Install
 
-## Download
+Prebuilt bundles are attached to GitHub Actions runs (artifact
+`MS-Audio-Dock-Remapper-macos`) and, once tagged, to the Releases page. They
+are signed ad hoc, so on first launch right-click the app and choose *Open*.
 
-Download the latest release from the repository's
-[Releases page](../../releases/latest). Each release contains:
-
-| Package | Use it when |
-| --- | --- |
-| `*-windows-x64-installer.exe` | You want a normal per-user installation, Start menu shortcut, optional desktop shortcut, and uninstall support. |
-| `*-windows-x64-portable.zip` | You want to extract and run the app without installing it. |
-| `SHA256SUMS-*.txt` | You want to verify the downloaded files. |
-
-The installer does not require administrator privileges. The portable package
-stores the application executable, English and Chinese documentation, and the
-license together in one ZIP archive.
-
-## Getting started
-
-1. Connect the Microsoft Audio Dock to your computer.
-2. Install the app or extract the portable package, then start
-   **MS Audio Dock Remapper**.
-3. In the **Buttons** section, select the button you want to change (Teams on
-   Windows; any of the five buttons on macOS).
-4. Under **When pressed**, choose **Open an application** and pick one from
-   the searchable list, or choose **Open a URL or run a command** and enter a
-   URL, a program path and optional arguments.
-5. Select **Test** to confirm the action works, then press the button on the
-   Dock.
-
-Changes apply and save immediately. The sidebar shows whether the Dock is
-connected; the **About** section lists the device identity and the number of
-matching input collections, and the Buttons section shows the most recent
-press.
-
-## Running in the background
-
-Closing the settings window hides it; it does not stop the remapper. Reopen it
-from the tray icon (double-click on Windows) or the menu bar icon (macOS).
-Quit from the tray / menu bar menu or from the **About** section.
-
-The **General** section offers:
-
-- **Run button actions** — pause all remapping without quitting.
-- **Confirmation sound** — play a short sound after an action runs.
-- **Launch at login** — register a per-user login entry.
-- **Start hidden** — start with only the tray / menu bar icon; the login entry
-  then carries `--minimized`, so the silent start also holds when the
-  configuration file cannot be read. You can pass `--minimized` to a shortcut
-  of your own for the same effect.
-
-On macOS, giving Play/Pause or a Volume key an action makes the app take the
-Dock over from the system, so the key does only your action; keys without an
-action are re-posted to the system and keep working (a held volume key no
-longer auto-repeats). Re-posting needs Accessibility access: macOS asks for it
-the first time you bind a media key, and until it is granted the system keeps
-performing the key's own function as well.
-
-Only one instance of the application can run at a time.
-
-## Configuration
-
-Settings are saved locally as readable JSON at:
-
-```text
-%APPDATA%\ms-audio-dock-remapper\config.json                       (Windows)
-~/Library/Application Support/ms-audio-dock-remapper/config.json   (macOS)
-```
-
-Files written by earlier versions (one action for the Teams key) are migrated
-automatically. The application does not need administrator privileges and does
-not modify the Audio Dock firmware or driver.
-
-## macOS
-
-There is no prebuilt macOS download yet. Build the app bundle from source:
+To build from source:
 
 ```bash
 brew install rustup && rustup default stable   # once
 ./build-macos.sh
 ```
 
-This produces `target/release/MS Audio Dock Remapper.app`, signed ad hoc;
-pass a Developer ID identity as the first argument to sign for distribution.
-Copy the bundle to `/Applications` and open it. The app shows a menu bar icon
-(no Dock icon); use its menu to open the settings window or quit. "Launch at
-login" writes a per-user LaunchAgent under `~/Library/LaunchAgents/`.
+This produces `target/release/MS Audio Dock Remapper.app`. Copy it to
+`/Applications` (or `~/Applications`) and open it. Pass a Developer ID
+identity as the first argument of the script to sign for distribution.
 
-No Input Monitoring or Accessibility permission is required for the default
-shared mode: the Dock's Teams key lives in a vendor HID collection that macOS
-leaves open to applications. Only binding a media key asks for Accessibility
-access, because the app then has to re-post the system media keys it
-intercepts.
+## Using it
+
+1. Connect the Dock. The status dot in the sidebar turns green.
+2. In **Buttons**, select a button, then choose what happens **When pressed**.
+   For *Open an application* pick one from the searchable list; for *Open a URL
+   or run a command* type the URL or program path and optional arguments.
+3. Press **Test** to try it, then press the button on the Dock.
+
+Everything saves immediately. Closing the window hides it; reopen it from the
+menu bar icon. **General** holds the switches for running actions at all, the
+confirmation sound, launch at login and starting hidden. **About** shows the
+device identity and the number of matching HID collections.
+
+## Permissions
+
+The Dock's Teams key lives in a vendor HID collection that macOS leaves open to
+applications, so the default mode needs no permission at all.
+
+macOS also acts on the Dock's Play/Pause and Volume keys. To make a remapped
+media key do *only* your action, the app has to open the Dock exclusively and
+then re-post the system media keys it intercepts for buttons you left alone.
+Re-posting input needs **Accessibility** access. The app asks for it the first
+time you give a media key an action, switches over by itself once it is granted
+(no restart), and until then keeps the shared mode so nothing stops working.
+One trade-off: holding a volume key no longer auto-repeats in exclusive mode.
+
+## How it works
+
+The Dock exposes several HID collections on one USB interface. macOS delivers
+all of them through a single device handle, so the app tells the buttons apart
+by report ID. Captured from a real Dock on macOS 26:
+
+| Button | Collection | Press report |
+| --- | --- | --- |
+| Teams | vendor page `FF99`, usage `0001` | `9B 01` (release `9B 00`) |
+| Volume Up / Down | consumer control | `01 01` / `01 02` |
+| Play / Pause | consumer control | `04 08` |
+| Microphone Mute | telephony | `08 01` / `08 00` (latched state) |
+
+Reading goes through [hidapi](https://github.com/libusb/hidapi) in shared
+mode, or in exclusive mode once a media key is bound. Actions run on a worker
+thread so a slow launch never delays the next press. The UI is
+[Slint](https://slint.dev) with its native macOS widget style.
+
+## Configuration
+
+Settings live in readable JSON at
+
+```text
+~/Library/Application Support/ms-audio-dock-remapper/config.json
+```
+
+Files written by the original Windows app (one action for the Teams key) are
+migrated automatically.
+
+## Windows
+
+The Windows backend inherited from the original project is still in the tree
+(`src/platform/windows.rs`, Raw Input for the Teams key only, tray icon,
+registry autostart, Inno Setup installer via the manual release workflow). It
+compiles against the same shared UI and config code, but this repository is
+developed and tested on macOS only.
 
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for environment setup, development
-builds, testing, project rules, and release packaging.
+See [CONTRIBUTING.md](CONTRIBUTING.md). The macOS CI workflow runs `cargo fmt`,
+`cargo test`, `cargo clippy -D warnings`, builds the bundle, checks its
+signature and `Info.plist`, starts it headless for five seconds and uploads the
+zipped bundle.
 
-## License
+## Origin and license
 
-This project is released under the [MIT License](LICENSE).
+This project started as a port of
+[Masterain's MS Audio Dock Teams Key Remapper](https://github.com/Masterain98/ms-audio-dock-remapper)
+for Windows, and keeps its Windows backend, Slint foundation and MIT license.
+The macOS backend, the per-button action model, the media-key takeover, the
+application picker, the redesigned settings window and the macOS packaging
+and CI were written for this repository by Hung Ngo. The full history is in
+the git log.
+
+Released under the [MIT License](LICENSE), which carries both copyright
+notices.

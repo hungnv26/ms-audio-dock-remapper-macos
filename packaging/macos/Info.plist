@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>app-icon</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.masterain.ms-audio-dock-remapper</string>
+	<string>net.hungngo.ms-audio-dock-remapper</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
