@@ -35,6 +35,8 @@ pub fn supported_buttons() -> &'static [Button] {
     &Button::ALL
 }
 
+pub fn bring_to_front() {}
+
 pub fn supports_media_key_takeover() -> bool {
     false
 }

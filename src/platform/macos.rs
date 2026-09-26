@@ -118,6 +118,20 @@ pub fn supports_media_key_takeover() -> bool {
     true
 }
 
+/// Activates the app (LSUIElement apps are not activated by their status
+/// item's menu), so the settings window comes to the front. Main thread only;
+/// a no-op elsewhere.
+pub fn bring_to_front() {
+    use objc2::MainThreadMarker;
+    use objc2_app_kit::NSApplication;
+
+    if let Some(mtm) = MainThreadMarker::new() {
+        let app = NSApplication::sharedApplication(mtm);
+        #[allow(deprecated)]
+        app.activateIgnoringOtherApps(true);
+    }
+}
+
 /// Accessibility trust, which gates `CGEventPost` (verified: from an untrusted
 /// process the post is silently dropped). With `prompt`, macOS shows its
 /// "would like to control this computer" dialog and adds the app to the list.

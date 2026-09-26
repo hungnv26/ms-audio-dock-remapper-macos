@@ -3002,7 +3002,7 @@ dependencies = [
 
 [[package]]
 name = "ms-audio-dock-remapper"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "chrono",
  "core-foundation 0.10.1",

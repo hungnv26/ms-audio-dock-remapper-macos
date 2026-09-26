@@ -154,6 +154,12 @@ pub fn accessibility_trusted(prompt: bool) -> bool {
     backend::accessibility_trusted(prompt)
 }
 
+/// Makes this app the active one so a window shown from the tray / menu bar
+/// item comes to the front (menu bar apps are not activated by a menu click).
+pub fn bring_to_front() {
+    backend::bring_to_front();
+}
+
 /// Whether a login entry for this app currently exists.
 pub fn autostart_enabled() -> bool {
     backend::autostart_enabled()

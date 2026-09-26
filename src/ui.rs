@@ -783,8 +783,6 @@ pub fn run(config: Arc<Mutex<Config>>, start_minimized: bool) {
     }
     ui.set_launch_at_login(autostart::is_enabled());
     ui.set_media_takeover_available(platform::supports_media_key_takeover());
-    ui.window().set_size(slint::LogicalSize::new(780.0, 820.0));
-
     let buttons = platform::supported_buttons();
     let button_model = Rc::new(VecModel::from(
         buttons
@@ -994,12 +992,32 @@ pub fn run(config: Arc<Mutex<Config>>, start_minimized: bool) {
         });
     }
 
+    // Debug aid: MSADR_DEBUG_SHOW_AFTER_MS=<ms> opens the window from a timer,
+    // exercising the same path as "Open Settings…" without clicking the menu.
+    #[cfg(debug_assertions)]
+    let _debug_show = std::env::var("MSADR_DEBUG_SHOW_AFTER_MS")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .map(|ms| {
+            let uiw = ui.as_weak();
+            let timer = Timer::default();
+            timer.start(
+                TimerMode::SingleShot,
+                Duration::from_millis(ms),
+                move || {
+                    if let Some(ui) = uiw.upgrade() {
+                        present(&ui);
+                    }
+                },
+            );
+            timer
+        });
+
     let outcome = if start_minimized {
         slint::run_event_loop_until_quit()
     } else {
-        ui.window()
-            .show()
-            .and_then(|()| slint::run_event_loop_until_quit())
+        present(&ui);
+        slint::run_event_loop_until_quit()
     };
     if let Err(error) = outcome {
         handle_backend_failure(&error);
@@ -1008,6 +1026,24 @@ pub fn run(config: Arc<Mutex<Config>>, start_minimized: bool) {
 
 thread_local! {
     static PUMP_STATE: RefCell<Option<Rc<State>>> = const { RefCell::new(None) };
+    static SIZED: Cell<bool> = const { Cell::new(false) };
+}
+
+const INITIAL_SIZE: (f32, f32) = (780.0, 820.0);
+
+/// Shows the settings window, gives it its initial size the first time (only
+/// after `show`: sizing a never-shown window leaves an empty content view on
+/// macOS) and brings the app to the front.
+fn present(ui: &AppWindow) {
+    if let Err(e) = ui.window().show() {
+        platform::alert(&format!("{} {e}", t("render_fail")));
+        return;
+    }
+    if !SIZED.with(|s| s.replace(true)) {
+        ui.window()
+            .set_size(slint::LogicalSize::new(INITIAL_SIZE.0, INITIAL_SIZE.1));
+    }
+    platform::bring_to_front();
 }
 
 fn media_hint(media_bound: bool, exclusive: bool, granted: bool) -> &'static str {
@@ -1135,7 +1171,7 @@ fn apply_event(ui: &AppWindow, ev: MonitorEvent) {
             });
         }
         MonitorEvent::TrayShow => {
-            let _ = ui.show();
+            present(ui);
         }
         MonitorEvent::Quit => {
             platform::request_quit();

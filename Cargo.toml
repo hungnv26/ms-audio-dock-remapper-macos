@@ -1,6 +1,6 @@
 [package]
 name = "ms-audio-dock-remapper"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 description = "Remap the buttons of the Microsoft Audio Dock on macOS (Rust + Slint)"
 license = "MIT"
@@ -50,7 +50,7 @@ png = "0.18"
 libc = "0.2"
 # Re-posting system media keys (exclusive mode) and the Accessibility check.
 objc2 = "0.6"
-objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSEvent", "NSGraphicsContext", "objc2-core-graphics"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSEvent", "NSGraphicsContext", "NSApplication", "NSResponder", "NSRunningApplication", "objc2-core-graphics"] }
 objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGEvent", "CGEventTypes"] }
 objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSGeometry"] }
 core-foundation = "0.10"

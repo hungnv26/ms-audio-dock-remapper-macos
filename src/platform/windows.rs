@@ -218,6 +218,8 @@ pub fn supported_buttons() -> &'static [crate::config::Button] {
     &[crate::config::Button::Teams]
 }
 
+pub fn bring_to_front() {}
+
 pub fn supports_media_key_takeover() -> bool {
     false
 }
