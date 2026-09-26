@@ -203,7 +203,7 @@ slint::slint! {
     }
 
     export component AppWindow inherits Window {
-        title: "Audio Dock";
+        title: "MS Audio Dock Remapper for macOS";
         icon: root.app-icon;
         background: Theme.window;
         min-width: 700px;
@@ -283,7 +283,7 @@ slint::slint! {
                             alignment: center;
                             spacing: 3px;
                             Text {
-                                text: "Audio Dock";
+                                text: "Audio Dock Remapper";
                                 font-size: 15px;
                                 font-weight: 600;
                                 color: Theme.text;
@@ -456,7 +456,7 @@ slint::slint! {
                         if root.needs-accessibility: Group {
                             Row {
                                 label: "Accessibility access needed";
-                                detail: "Until Audio Dock Remapper is allowed under Privacy & Security › Accessibility, macOS also performs this key's system function. The app switches over by itself once allowed.";
+                                detail: "Until MS Audio Dock Remapper for macOS is allowed under Privacy & Security › Accessibility, macOS also performs this key's system function. The app switches over by itself once allowed.";
                                 divider: false;
                                 Button {
                                     text: "Open System Settings";
@@ -540,7 +540,7 @@ slint::slint! {
                                 alignment: center;
                                 spacing: 3px;
                                 Text {
-                                    text: "Audio Dock Remapper";
+                                    text: "MS Audio Dock Remapper for macOS";
                                     font-size: 17px;
                                     font-weight: 700;
                                     color: Theme.text;
@@ -577,7 +577,7 @@ slint::slint! {
                                 Button { text: "Open"; clicked => { root.open-repo(); } }
                             }
                             Row {
-                                label: "Quit Audio Dock Remapper";
+                                label: "Quit MS Audio Dock Remapper for macOS";
                                 detail: "Stops listening to the Dock until the app is opened again";
                                 divider: false;
                                 Button { text: "Quit"; clicked => { root.quit-app(); } }
@@ -652,7 +652,7 @@ impl State {
             if granted {
                 "Granted. A remapped media key does only your action."
             } else {
-                "Needed so a remapped Play/Pause or Volume key stops reaching the system. Allow Audio Dock Remapper under Privacy & Security › Accessibility."
+                "Needed so a remapped Play/Pause or Volume key stops reaching the system. Allow MS Audio Dock Remapper for macOS under Privacy & Security › Accessibility."
             }
             .into(),
         );

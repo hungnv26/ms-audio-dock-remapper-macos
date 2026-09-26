@@ -51,7 +51,7 @@ brew install rustup && rustup default stable   # once
 ./build-macos.sh
 ```
 
-This produces `target/release/MS Audio Dock Remapper.app`. Copy it to
+This produces `target/release/MS Audio Dock Remapper for macOS.app`. Copy it to
 `/Applications` (or `~/Applications`) and open it. Pass a Developer ID
 identity as the first argument of the script to sign for distribution.
 

@@ -46,12 +46,12 @@ jobs:
 
       - name: Smoke-test the bundle
         run: |
-          APP="target/release/MS Audio Dock Remapper.app"
+          APP="target/release/MS Audio Dock Remapper for macOS.app"
           codesign --verify --verbose=2 "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           # No Dock on the runner: the app must still start, report the
           # missing device, and keep running until it is told to quit.
-          "$APP/Contents/MacOS/ms-audio-dock-remapper" --minimized &
+          "$APP/Contents/MacOS/MS Audio Dock Remapper for macOS" --minimized &
           PID=$!
           sleep 5
           kill -0 "$PID"
@@ -60,7 +60,7 @@ jobs:
       - name: Package bundle
         run: |
           mkdir -p dist
-          ditto -c -k --keepParent "target/release/MS Audio Dock Remapper.app" \
+          ditto -c -k --keepParent "target/release/MS Audio Dock Remapper for macOS.app" \
             "dist/MS-Audio-Dock-Remapper-macos-${{ github.sha }}.zip"
 
       - name: Upload bundle artifact

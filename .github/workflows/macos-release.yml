@@ -68,10 +68,10 @@ jobs:
 
       - name: Smoke-test the bundle
         run: |
-          APP="target/release/MS Audio Dock Remapper.app"
+          APP="target/release/MS Audio Dock Remapper for macOS.app"
           codesign --verify --verbose=2 "$APP"
           plutil -lint "$APP/Contents/Info.plist"
-          "$APP/Contents/MacOS/ms-audio-dock-remapper" --minimized &
+          "$APP/Contents/MacOS/MS Audio Dock Remapper for macOS" --minimized &
           PID=$!
           sleep 5
           kill -0 "$PID"
@@ -83,7 +83,7 @@ jobs:
           TAG="${{ steps.tag.outputs.tag }}"
           mkdir -p dist
           ZIP="dist/MS-Audio-Dock-Remapper-$TAG-macos.zip"
-          ditto -c -k --keepParent "target/release/MS Audio Dock Remapper.app" "$ZIP"
+          ditto -c -k --keepParent "target/release/MS Audio Dock Remapper for macOS.app" "$ZIP"
           (cd dist && shasum -a 256 "$(basename "$ZIP")" > "SHA256SUMS-$TAG.txt")
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
           echo "sums=dist/SHA256SUMS-$TAG.txt" >> "$GITHUB_OUTPUT"
@@ -97,7 +97,7 @@ jobs:
           ## Install
 
           1. Download the `.zip` below and unzip it.
-          2. Move **MS Audio Dock Remapper.app** to `/Applications`.
+          2. Move **MS Audio Dock Remapper for macOS.app** to `/Applications`.
           3. The app is signed ad hoc, not notarized: on first launch **right-click the app and choose Open**, then confirm.
 
           The app lives in the menu bar (no Dock icon). Binding an action to Play/Pause or a Volume key asks once for Accessibility access; see the README for why.

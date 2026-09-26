@@ -397,7 +397,7 @@ fn install_status_item(on_event: SharedOnEvent) {
 
     let mut builder = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
-        .with_tooltip("Microsoft Audio Dock Remapper");
+        .with_tooltip("MS Audio Dock Remapper for macOS");
     if let Some(icon) = status_icon() {
         builder = builder.with_icon(icon);
     }
@@ -431,7 +431,7 @@ fn status_icon() -> Option<Icon> {
 pub fn alert(message: &str) {
     eprintln!("[ms-audio-dock-remapper] {message}");
     let script = format!(
-        "display alert \"MS Audio Dock Remapper\" message \"{}\" as warning",
+        "display alert \"MS Audio Dock Remapper for macOS\" message \"{}\" as warning",
         message.replace('\\', "\\\\").replace('"', "\\\"")
     );
     let _ = Command::new("osascript").args(["-e", &script]).status();

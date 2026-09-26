@@ -6,8 +6,11 @@
 pub fn t(key: &str) -> &str {
     const TABLE: &[(&str, &str)] = &[
         ("tray_open", "Open Settings…"),
-        ("menu_exit", "Quit Audio Dock Remapper"),
-        ("single_instance", "Audio Dock Remapper is already running."),
+        ("menu_exit", "Quit MS Audio Dock Remapper for macOS"),
+        (
+            "single_instance",
+            "MS Audio Dock Remapper for macOS is already running.",
+        ),
         ("init_fail", "Failed to initialize the Dock listener: "),
         (
             "render_fail",

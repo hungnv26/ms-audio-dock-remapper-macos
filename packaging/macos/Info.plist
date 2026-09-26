@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>MS Audio Dock Remapper</string>
+	<string>MS Audio Dock Remapper for macOS</string>
 	<key>CFBundleExecutable</key>
-	<string>ms-audio-dock-remapper</string>
+	<string>MS Audio Dock Remapper for macOS</string>
 	<key>CFBundleIconFile</key>
 	<string>app-icon</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>MS Audio Dock Remapper</string>
+	<string>MS Audio Dock Remapper for macOS</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

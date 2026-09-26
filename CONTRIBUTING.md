@@ -34,7 +34,9 @@ grant and Finder behaviour) use `./build-macos.sh` and run the `.app` it
 produces.
 
 Only one instance runs at a time (a `flock` in `~/Library/Caches`). Quit the
-installed copy before running a development build.
+installed copy before running a development build. `build-macos.sh` names the
+executable inside the bundle after the product, because macOS shows the
+process name in the menu bar when the app is activated.
 
 ## Project structure
 

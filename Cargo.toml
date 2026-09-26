@@ -1,6 +1,6 @@
 [package]
 name = "ms-audio-dock-remapper"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 description = "Remap the buttons of the Microsoft Audio Dock on macOS (Rust + Slint)"
 license = "MIT"
